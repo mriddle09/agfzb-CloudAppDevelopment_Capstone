@@ -7,8 +7,9 @@
 # @return The output of this action, which must be a JSON object.
 #
 #
-from cloudant.client import Cloudant
-from cloudant.error import CloudantException
+from ibmcloudant.cloudant_v1 import CloudantV1
+from ibm_cloud_sdk_core import ApiException
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import requests
 
 
@@ -16,13 +17,13 @@ def main(dict):
     databaseName = "dealerships"
 
     try:
-        client = Cloudant.iam(
+        client = CloudantV1.iam(
             account_name=dict["COUCH_USERNAME"],
             api_key=dict["IAM_API_KEY"],
             connect=True,
         )
         print("Databases: {0}".format(client.all_dbs()))
-    except CloudantException as ce:
+    except ApiException as ce:
         print("unable to connect")
         return {"error": ce}
     except (requests.exceptions.RequestException, ConnectionResetError) as err:
