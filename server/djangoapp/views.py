@@ -88,15 +88,18 @@ def get_dealerships(request):
         return render(request, 'djangoapp/index.html', context)
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
-def get_dealer_details(request, dealer_id):
+def get_dealer_details(request, id):
     context = {}
     if request.method == "GET":
-        url = 'https://us-east.functions.appdomain.cloud/api/v1/web/matthew-riddle_space1-mr/dealership-package/review'
-        reviews = get_dealer_reviews_from_cf(url, dealer_id=dealer_id)
+        url = 'https://us-east.functions.appdomain.cloud/api/v1/web/matthew-riddle_space1-mr/dealership-package/review?id=' + str(id) + ''
+        reviews = get_dealer_reviews_from_cf(url, id=id)
+
+        print("REVIEWS")
+        print(reviews)
 
         context = {
             "reviews":  reviews, 
-            "dealer_id": dealer_id
+            "dealer_id": id
         }
 
         return render(request, 'djangoapp/dealer_details.html', context)
