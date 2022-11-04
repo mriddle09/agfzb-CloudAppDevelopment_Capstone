@@ -1,6 +1,6 @@
 import requests
 import json
-from .models import CarDealer, DealerReview
+from .models import CarDealer, DealerReview, CarModel
 from requests.auth import HTTPBasicAuth
 from ibm_watson import NaturalLanguageUnderstandingV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
@@ -36,7 +36,7 @@ def get_request(url, api_key=False, **kwargs):
 
 def post_request(url, json_payload, **kwargs):
     try:
-        response = response.post(url, params=kwards, json=json_payload)
+        response = requests.post(url, params=kwargs, json=json_payload)
     except:
         print("error")
 
@@ -62,13 +62,21 @@ def get_dealers_from_cf(url, **kwargs):
         # For each dealer object
         for dealer in dealers:
             # Get its content in `doc` object
-            dealer_doc = dealer["doc"]
+            if len(dealers) != 1:
+                dealer_doc = dealer["doc"]
+            else:
+                dealer_doc = dealer
+
             # Create a CarDealer object with values in `doc` object
             dealer_obj = CarDealer(address=dealer_doc["address"], city=dealer_doc["city"], full_name=dealer_doc["full_name"],
                                    id=dealer_doc["id"], lat=dealer_doc["lat"], long=dealer_doc["long"],
                                    short_name=dealer_doc["short_name"],
                                    st=dealer_doc["st"], state=dealer_doc["state"], zip=dealer_doc["zip"])
-            results.append(dealer_obj)
+            if len(dealers) != 1:
+                results.append(dealer_obj)
+            else:
+                results = dealer_obj
+            
 
     return results
 

@@ -1,4 +1,34 @@
 <html>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a>Dealership Review</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a class="btn btn-link" href="{% url 'djangoapp:index' %}">Home</a></li>
+                <li><a class="btn btn-link" href="{% url 'djangoapp:about' %}">About Us</a></li>
+                <li><a class="btn btn-link" href="{% url 'djangoapp:contact' %}">Contact Us</a></li>
+
+                {% if user.is_authenticated %}
+                <li>
+                    <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
+                    <a class="btn btn-link" href="{% url 'djangoapp:logout' %}">Logout</a>
+                </li>
+                {% else %}
+                <form action="{% url 'djangoapp:login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Username" name="username" >
+                        <input type="password" class="form-control" placeholder="Username" name="psw" >
+                        <button class="btn btn-primary" type="submit">Login</button>
+                        <a class="btn btn-link" href="{% url 'djangoapp:registration' %}">Sign Up</a>
+                    </div>
+                </form>
+                {% endif %}
+
+            </ul>
+        </div>
+    </nav>
 <h1>
 Welcome to Best Cars dealership, home to the best cars in North America. We sell domestic and imported cars at reasonable prices.
 </h1>
