@@ -2,23 +2,30 @@ import requests
 import json
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson.natural_language_understanding_v1 import Features, SentimentOptions
 
 
 # Create a `get_request` to make HTTP GET requests
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
 #                                     auth=HTTPBasicAuth('apikey', api_key))
 
-def get_request(url, **kwargs):
-    print(kwargs)
-    print("GET from {} ".format(url))
-    try:
-        # Call get method of requests library with URL and parameters
-        
-        response = requests.get(url, headers={'Content-Type': 'application/json'},
+def get_request(url, api_key=False, **kwargs):
+    if api_key:
+        # Basic authentication GET
+        try:
+            response = requests.get(url, headers={'Content-Type': 'application/json'},
+                                    params=kwargs, auth=HTTPBasicAuth('apikey', api_key))
+        except:
+            print("An error occurred while making GET request. ")
+    else:
+        # No authentication GET
+        try:
+            response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
-    except:
-        # If any error occurs
-        print("Network exception occurred")
+        except:
+            print("An error occurred while making GET request. ")
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)
@@ -104,7 +111,8 @@ def get_dealer_reviews_from_cf(url, id):
                 # Creating a review object with some default values
                 review_obj = DealerReview(
                     dealership=dealership, id=id, name=name, purchase=purchase, review=review_content)
-                
+            
+            review_obj.sentiment = analyze_review_sentiments(review_obj.review)
             results.append(review_obj)
 
     return results
@@ -115,5 +123,35 @@ def get_dealer_reviews_from_cf(url, id):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
 
+def analyze_review_sentiments(review_text):
+    
+    try:
+    
+        url = 'https://api.us-east.natural-language-understanding.watson.cloud.ibm.com/instances/203961df-c57a-4f6b-bd04-c87489f444f9'
+        api_key = "tuns9YxLBE2q9EyVAqXZCws1XKKb7VoC-PAlFyRpSR7d"
+    except KeyError:
+        url = config('https://api.us-east.natural-language-understanding.watson.cloud.ibm.com/instances/203961df-c57a-4f6b-bd04-c87489f444f9')
+        api_key = config('tuns9YxLBE2q9EyVAqXZCws1XKKb7VoC-PAlFyRpSR7d')
 
+    version = '2021-08-01'
+    authenticator = IAMAuthenticator(api_key)
+    nlu = NaturalLanguageUnderstandingV1(
+        version=version, authenticator=authenticator)
+    nlu.set_service_url(url)
+
+    # get sentiment of the review
+    try:
+        response = nlu.analyze(text=review_text, features=Features(
+            sentiment=SentimentOptions())).get_result()
+        print(json.dumps(response))
+        
+        sentiment_label = response["sentiment"]["document"]["label"]
+    except:
+        print("Review is too short for sentiment analysis. Assigning default sentiment value 'neutral' instead")
+        sentiment_label = "neutral"
+
+    # print(sentiment_score)
+    print(sentiment_label)
+
+    return sentiment_label
 
